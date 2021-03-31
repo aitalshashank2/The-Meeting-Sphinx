@@ -1,0 +1,1 @@
+from TheSphinx.tests import *

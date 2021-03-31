@@ -1,0 +1,13 @@
+DEBUG: TRUE # Switch this in production
+SECRET_KEY: # Your secret key
+
+DATABASE:
+    HOST: '127.0.0.1'
+    PORT: 5432
+    NAME: themeetingsphinx
+    USER: # Your password
+    PASSWORD: # Your password
+
+ALLOWED_HOSTS:
+    - "localhost"
+    - "127.0.0.1"
