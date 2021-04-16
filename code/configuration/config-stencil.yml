@@ -11,3 +11,12 @@ DATABASE:
 ALLOWED_HOSTS:
     - "localhost"
     - "127.0.0.1"
+
+CORS_ORIGIN_WHITELIST:
+    - "http://localhost:3000"
+    - "frontend"
+    - # To be implemented
+
+CHANNEL_LAYER:
+    HOST: 'redis'
+    PORT: '6379'

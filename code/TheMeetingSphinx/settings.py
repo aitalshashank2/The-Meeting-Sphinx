@@ -34,18 +34,28 @@ DEBUG = CONFIG_VARS['DEBUG']
 ALLOWED_HOSTS = CONFIG_VARS['ALLOWED_HOSTS']
 
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+CSRF_COOKIE_NAME = 'sphinx_csrftoken'
+SESSION_COOKIE_NAME = 'sphinx_sessionid'
+
+CORS_ORIGIN_ALLOW_ALL = False
+CORS_ALLOW_CREDENTIALS = True
+CORS_ORIGIN_WHITELIST = []
+
+
 # Application definition
 
 INSTALLED_APPS = [
     'corsheaders',
+    'channels',
+    'TheSphinx',
+    'rest_framework',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
-    'TheSphinx'
 ]
 
 MIDDLEWARE = [
@@ -132,4 +142,21 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_ROOT = '../static/'
+STATIC_URL = '/api_static/'
+
+MEDIA_ROOT = '../media/'
+MEDIA_URL = '/api_media/'
+
+ASGI_APPLICATION = 'TheMeetingSphinx.routing.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [
+                (CONFIG_VARS['CHANNEL_LAYER']['HOST'], CONFIG_VARS['CHANNEL_LAYER']['PORT'])
+            ],
+        }
+    }
+}
+

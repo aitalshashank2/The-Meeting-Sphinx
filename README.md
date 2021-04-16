@@ -4,7 +4,15 @@
 
 ## Set up instructions
 - Clone the repository
-- Make a virtual environment and install the required dependencies from `requirements.txt`.
-- Make a database in postgresql named `themeetingsphinx`.
-- Apply migrations.
-- Run the server.
+- Build the image using
+    ```bash
+    docker-compose build
+    ```
+- Start the network
+    ```bash
+    docker-compose up -d
+    ```
+- In order to stop the network, run
+    ```bash
+    docker-compose down
+    ```
