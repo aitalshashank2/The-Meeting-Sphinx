@@ -125,6 +125,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 ADMIN_SITE_URL = 'admin/'
 
+AUTH_USER_MODEL = 'TheSphinx.User'
+
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 

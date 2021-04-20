@@ -11,6 +11,7 @@ DATABASE:
 ALLOWED_HOSTS:
     - "localhost"
     - "127.0.0.1"
+    - "db"
 
 CORS_ORIGIN_WHITELIST:
     - "http://localhost:3000"
@@ -20,3 +21,5 @@ CORS_ORIGIN_WHITELIST:
 CHANNEL_LAYER:
     HOST: 'redis'
     PORT: '6379'
+
+DEFAULT_PROFILE_PICTURE: https://i.stack.imgur.com/dr5qp.jpg

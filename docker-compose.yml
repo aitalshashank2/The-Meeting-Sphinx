@@ -28,7 +28,7 @@ services:
         build: 
             context: ./code
         container_name: sphinx_web
-        command: sh -c "python manage.py collectstatic --no-input && python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+        command: sh -c "python manage.py collectstatic --no-input && python manage.py runserver 0.0.0.0:8000"
         volumes:
             - ./code/:/code/
             - ./static/:/static/
