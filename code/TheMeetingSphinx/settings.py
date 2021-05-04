@@ -40,7 +40,7 @@ SESSION_COOKIE_NAME = 'sphinx_sessionid'
 
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ALLOW_CREDENTIALS = True
-CORS_ORIGIN_WHITELIST = []
+CORS_ORIGIN_WHITELIST = ['http://localhost:3000']
 
 
 # Application definition

@@ -1,1 +1,1 @@
-from TheSphinx.views import *
+from TheSphinx.views.auth import AuthViewSet 
