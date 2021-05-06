@@ -1,7 +1,9 @@
 import random
 import string
 
-from rest_framework import serializers, viewsets
+from urllib.parse import urlparse
+
+from rest_framework import  viewsets
 from rest_framework.permissions import IsAuthenticated
 
 from TheSphinx.models import Meeting
@@ -29,7 +31,13 @@ class MeetingViewSet(viewsets.ModelViewSet):
             except Meeting.DoesNotExist:
                 break
         
-        if not serializer.validated_data["meeting_link"]:
+        try:
+            result = urlparse(serializer.validated_data['meeting_link'])
+            valid = all([result.scheme, result.netloc, result.path])
+        except:
+            valid = False
+
+        if not valid:
             meeting_link = "/api/meeting/" + meeting_code
 
             serializer.save(

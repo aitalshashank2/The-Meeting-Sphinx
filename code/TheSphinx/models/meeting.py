@@ -42,8 +42,7 @@ class Meeting(models.Model):
 
     meeting_link = models.CharField(
         max_length=1023,
-        null=False,
-        blank=False
+        null=True,
     )
 
 
