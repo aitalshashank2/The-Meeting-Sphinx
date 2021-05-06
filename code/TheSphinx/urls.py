@@ -8,6 +8,7 @@ router = routers.SimpleRouter()
 router.register(r'auth', AuthViewSet)
 router.register(r'meeting', MeetingViewSet)
 router.register(r'message', MessageViewSet)
+router.register(r'recording', RecordingViewSet)
 
 urlpatterns = []
 
