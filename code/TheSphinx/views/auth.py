@@ -12,8 +12,8 @@ from rest_framework.response import Response
 
 from TheMeetingSphinx.settings import CONFIG_VARS
 
-from TheSphinx.models.user import User
-from TheSphinx.serializers.user import UserGetSerializer, UserPostSerializer
+from TheSphinx.models import User
+from TheSphinx.serializers import UserGetSerializer, UserPostSerializer
 
 
 class AuthViewSet(viewsets.ModelViewSet):

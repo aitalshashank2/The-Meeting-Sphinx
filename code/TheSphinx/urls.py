@@ -5,6 +5,7 @@ from TheSphinx.views import *
 router = routers.SimpleRouter()
 
 router.register(r'auth', AuthViewSet)
+router.register(r'meeting', MeetingViewSet)
 
 urlpatterns = []
 
