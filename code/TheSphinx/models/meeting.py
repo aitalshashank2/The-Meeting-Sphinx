@@ -25,13 +25,6 @@ class Meeting(models.Model):
         null=False
     )
 
-    attendees_recording = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
-        related_name='meetings_recording',
-        null=True,
-        blank=True
-    )
-
     start_time = models.DateTimeField(
         auto_now_add=True
     )

@@ -1,4 +1,3 @@
-from django.db.models import fields
 from rest_framework.serializers import ModelSerializer
 
 from TheSphinx.models import Meeting
@@ -6,6 +5,9 @@ from TheSphinx.serializers import UserGetSerializer
 
 
 class MeetingGetSerializer(ModelSerializer):
+    """
+    Verbose serializer for Meeting model to be used in GET METHOD
+    """
     organizers = UserGetSerializer(read_only=True, many=True)
     attendees = UserGetSerializer(read_only=True, many=True)
 
@@ -17,7 +19,6 @@ class MeetingGetSerializer(ModelSerializer):
             'title',
             'organizers',
             'attendees',
-            'attendees_recording',
             'start_time',
             'end_time',
             'meeting_code',
@@ -28,7 +29,6 @@ class MeetingGetSerializer(ModelSerializer):
             'title',
             'organizers',
             'attendees',
-            'attendees_recording',
             'start_time',
             'end_time',
             'meeting_code',
@@ -36,6 +36,9 @@ class MeetingGetSerializer(ModelSerializer):
         ]
 
 class MeetingPostSerializer(ModelSerializer):
+    """
+    Serializer for Meeting model to be used in POST METHOD
+    """
     class Meta:
         model = Meeting
         fields = [
