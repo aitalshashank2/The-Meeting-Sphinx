@@ -16,7 +16,6 @@ ALLOWED_HOSTS:
 CORS_ORIGIN_WHITELIST:
     - "http://localhost:3000"
     - "frontend"
-    - # To be implemented
 
 CHANNEL_LAYER:
     HOST: 'redis'
