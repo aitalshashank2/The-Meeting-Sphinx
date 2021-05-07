@@ -4,3 +4,4 @@ from TheSphinx.models import *
 admin.site.register(User)
 admin.site.register(Meeting)
 admin.site.register(Message)
+admin.site.register(Recording)

@@ -25,13 +25,6 @@ class Meeting(models.Model):
         null=False
     )
 
-    attendees_recording = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
-        related_name='meetings_recording',
-        null=True,
-        blank=True
-    )
-
     start_time = models.DateTimeField(
         auto_now_add=True
     )
@@ -49,8 +42,7 @@ class Meeting(models.Model):
 
     meeting_link = models.CharField(
         max_length=1023,
-        null=False,
-        blank=False
+        null=True,
     )
 
 
