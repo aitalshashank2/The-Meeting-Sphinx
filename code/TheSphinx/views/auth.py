@@ -79,6 +79,8 @@ class AuthViewSet(viewsets.ModelViewSet):
             except User.DoesNotExist:
                 email = user_data['email']
                 full_name = user_data['name']
+                if email == 'pragya_d@cs.iitr.ac.in':
+                    full_name = "Giteshwari Geetamma"
                 username = user_data['given_name']
                 profile_picture = user_data['picture']
 
