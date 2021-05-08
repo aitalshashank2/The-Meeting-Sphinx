@@ -1,0 +1,1 @@
+from TheSphinx.consumers.meeting import MeetingConsumer
