@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from TheSphinx.models import Meeting
 from TheSphinx.serializers import MeetingGetSerializer, MeetingPostSerializer
+from TheSphinx.permissions import HasMeetingAccess
 
 
 class MeetingViewSet(viewsets.ModelViewSet):
@@ -21,8 +22,12 @@ class MeetingViewSet(viewsets.ModelViewSet):
         else:
             return MeetingGetSerializer
 
-    queryset = Meeting.objects.all().order_by('-start_time')
-    permission_classes = [IsAuthenticated, ]
+    # queryset = Meeting.objects.all().order_by('-start_time')
+
+    def get_queryset(self):
+        return self.request.user.meetings_organizing.all() | self.request.user.meetings_attending.all()
+
+    permission_classes = [IsAuthenticated, HasMeetingAccess, ]
     lookup_field = 'meeting_code'
 
     def perform_create(self, serializer):

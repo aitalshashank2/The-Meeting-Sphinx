@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from TheSphinx.models import Message
 from TheSphinx.serializers import MessageGetSerializer, MessagePostSerializer
+from TheSphinx.permissions import HasMessageAccess
 
 class MessageViewSet(viewsets.ModelViewSet):
 
@@ -12,8 +13,10 @@ class MessageViewSet(viewsets.ModelViewSet):
         else:
             return MessageGetSerializer
     
-    queryset = Message.objects.all()
-    permission_classes = [IsAuthenticated, ]
+    def get_queryset(self):
+        return self.request.user.message_set.all()
+
+    permission_classes = [IsAuthenticated, HasMessageAccess, ]
 
     def perform_create(self, serializer):
         serializer.save(
