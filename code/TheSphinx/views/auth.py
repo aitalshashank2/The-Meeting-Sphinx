@@ -87,7 +87,7 @@ class AuthViewSet(viewsets.ModelViewSet):
                 new_user = User(
                     email=email,
                     full_name=full_name,
-                    username=username,
+                    username=email,
                     profile_picture=profile_picture,
                 )
 

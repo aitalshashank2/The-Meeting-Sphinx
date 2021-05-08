@@ -85,6 +85,7 @@ class MeetingViewSet(viewsets.ModelViewSet):
             else:
                 # Join
                 meeting.attendees.add(user)
+                meeting.save()
                 return Response({
                     'Detail': 'User added to meeting attendees',
                     'meeting_code': code,
