@@ -150,7 +150,7 @@ STATIC_URL = '/api_static/'
 MEDIA_ROOT = '../media/'
 MEDIA_URL = '/api_media/'
 
-ASGI_APPLICATION = 'TheMeetingSphinx.routing.application'
+ASGI_APPLICATION = 'TheMeetingSphinx.asgi.application'
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
