@@ -16,13 +16,19 @@ class Meeting(models.Model):
     organizers = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         related_name='meetings_organizing',
-        null=False
+        blank=False
     )
 
     attendees = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         related_name='meetings_attending',
-        null=False
+        blank=True
+    )
+
+    banned = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='meetings_banned',
+        blank=True
     )
 
     start_time = models.DateTimeField(
