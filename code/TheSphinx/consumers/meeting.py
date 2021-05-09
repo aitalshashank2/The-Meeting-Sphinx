@@ -96,32 +96,3 @@ class MeetingConsumer(WebsocketConsumer):
         message = event['message']
         self.send(text_data=json.dumps(message))
         
-
-    # def receive(self, text_data):
-    #     print("received")
-    #     message_data_json = json.loads(text_data)
-    #     message_id = message_data_json['message_id']
-
-    #     try:
-    #         message = Message.objects.get(pk=message_id)
-    #         meeting = message.meeting
-            
-    #         if(meeting.meeting_code == int(self.meeting_code)):
-    #             print("meeting.meeting_code")
-    #             print(meeting.meeting_code)
-
-    #             serializer = MessageGetSerializer(message)
-    #             async_to_sync(self.channel_layer.group_send)(
-    #                 self.meeting_code,
-    #                 {
-    #                     'type': "send_message",
-    #                     'message': serializer.data,
-    #                 }
-    #             )
-    #     except Message.DoesNotExist:
-    #         pass
-    
-    # def send_message(self, event):
-    #     message = event['message']
-
-    #     self.send(text_data=json.dumps(message))
