@@ -12,9 +12,8 @@ class MessageViewSet(viewsets.ModelViewSet):
             return MessagePostSerializer
         else:
             return MessageGetSerializer
-    
-    def get_queryset(self):
-        return self.request.user.message_set.all()
+
+    queryset = Message.objects.all()
 
     permission_classes = [IsAuthenticated, HasMessageAccess, ]
 
