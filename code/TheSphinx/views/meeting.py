@@ -49,7 +49,7 @@ class MeetingViewSet(viewsets.ModelViewSet):
             valid = False
 
         if not valid:
-            meeting_link = "/api/meeting/" + meeting_code
+            meeting_link = "pasta"
 
             serializer.save(
                 organizers=[self.request.user.pk, ],

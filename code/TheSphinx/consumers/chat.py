@@ -18,7 +18,7 @@ class ChatConsumer(WebsocketConsumer):
             meeting = Meeting.objects.get(meeting_code = self.meeting_code)
 
             async_to_sync(self.channel_layer.group_add)(
-                self.meeting_code,
+                f'chat-{self.meeting_code}',
                 self.channel_name
             )
             
@@ -48,7 +48,7 @@ class ChatConsumer(WebsocketConsumer):
         self.user = self.scope['user']
 
         async_to_sync(self.channel_layer.group_discard)(
-            self.meeting_code,
+            f'chat-{self.meeting_code}',
             self.channel_name
         )
     
@@ -66,15 +66,19 @@ class ChatConsumer(WebsocketConsumer):
             message.save()
 
             serializer = MessageGetSerializer(message)
+            print("received_sending")
             async_to_sync(self.channel_layer.group_send)(
-                self.meeting_code,
+                f'chat-{self.meeting_code}',
                 {
                     'type': "send_message",
-                    'data': serializer.data,
+                    'data': {
+                        'type': 'send_message',
+                        'data': serializer.data
+                    },
                 }
             )
         except:
             self.close()
     
     def send_message(self, event):
-        self.send(text_data=json.dumps(event))
+        self.send(text_data=json.dumps(event['data']))
