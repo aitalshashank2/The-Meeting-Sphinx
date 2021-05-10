@@ -25,15 +25,3 @@ class RecordingViewSet(viewsets.ModelViewSet):
         serializer.save(
             user=self.request.user
         )
-    
-    @action(detail=False, methods=['get'])
-    def start(self, request):
-        return Response(f'{request.user.full_name}, you have reached hit start')
-
-    @action(detail=False, methods=['get'])
-    def stop(self, request):
-        return Response(f'{request.user.full_name}, you have reached stop')
-
-    @action(detail=False, methods=['get'])
-    def test(self, request):
-        return Response(request.user.full_name, status=200)

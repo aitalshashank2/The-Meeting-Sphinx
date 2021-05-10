@@ -113,7 +113,6 @@ class MeetingConsumer(WebsocketConsumer):
             pass
 
         if data['type'] == "user_recrd_start":
-            print("Start")
             r = Recording(
                 user = self.user,
                 meeting = meeting
@@ -121,7 +120,6 @@ class MeetingConsumer(WebsocketConsumer):
             r.save()
 
         elif data['type'] == "user_recrd_stop":
-            print("Stop")
             try:
                 r = Recording.objects.filter(user=self.user, meeting=meeting, end_time=None)
                 for x in r:
