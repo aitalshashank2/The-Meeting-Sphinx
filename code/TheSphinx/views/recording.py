@@ -26,34 +26,14 @@ class RecordingViewSet(viewsets.ModelViewSet):
             user=self.request.user
         )
     
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['get'])
     def start(self, request):
-        try:
-            code = request.data['meeting_code']
-        except KeyError:
-            return Response("Meeting Code Not Provided!", status=400)
-        try:
-            m = Meeting.objects.get(meeting_code=code)
-        except Meeting.DoesNotExist:
-            return Response("No such meeting exists!", status=404)
-            
-        r = Recording(
-            user=request.user,
-            meeting=m,
-        )
-        r.save()
+        return Response(f'{request.user.full_name}, you have reached hit start')
 
-        return Response({
-            'data': f'User {request.user.username} banned from {code}'
-        }, status=202)
+    @action(detail=False, methods=['get'])
+    def stop(self, request):
+        return Response(f'{request.user.full_name}, you have reached stop')
 
-    @action(detail=True, methods=['get'])
-    def stop(self, request, pk):
-        try:
-            r = Recording.objects.get(pk=pk)
-        except Recording.DoesNotExist:
-            return Response("No such recording instance exists!",status=404)
-        
-        r.end_time = datetime.now()
-        r.save()
-        return Response(f"Recording {r.id} stopped by user!",status=200)
+    @action(detail=False, methods=['get'])
+    def test(self, request):
+        return Response(request.user.full_name, status=200)
