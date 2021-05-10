@@ -63,8 +63,6 @@ class MeetingConsumer(WebsocketConsumer):
             self.close()
     
     def disconnect(self, close_code):
-        self.user = self.scope['user']
-
         message_send = {
             'data' : UserGetSerializer(self.user).data,
             'type' : "user_left",
@@ -78,11 +76,24 @@ class MeetingConsumer(WebsocketConsumer):
         )
 
         try:
-            meeting = Meeting.objects.get(meeting_code = self.meeting_code)
+            meeting = Meeting.objects.get(meeting_code=self.meeting_code)
             attendees = meeting.attendees.all()
             if self.user in attendees :
                 meeting.attendees.remove(self.user)
                 meeting.save()
+            elif self.user in meeting.organizers.all():
+                message_send = {
+                    'data' : '',
+                    'type' : "organiser_left",
+                } 
+                async_to_sync(self.channel_layer.group_send)(
+                    self.meeting_code,
+                    {
+                        'type': "send_user_info",
+                        'message': message_send,
+                    }
+                )
+                meeting.delete()
                 
         except:
             self.close()
