@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
@@ -42,7 +43,7 @@ class MeetingConsumer(WebsocketConsumer):
             message_data = {}
             message_data['user_data'] = UserGetSerializer(self.user).data
             message_data['rights'] = None
-            if user in meeting.organizers.all():
+            if self.user in meeting.organizers.all():
                 message_data['rights'] = 'Organiser'
             else:
                 message_data['rights'] = 'Attendee'
@@ -102,6 +103,40 @@ class MeetingConsumer(WebsocketConsumer):
             self.meeting_code,
             self.channel_name
         )
+
+    def receive(self, text_data=None, bytes_data=None):
+        data = json.loads(text_data)
+        try:
+            meeting = Meeting.objects.get(meeting_code=self.meeting_code)
+        except:
+            # self.close()
+            pass
+
+        if data['type'] == "user_recrd_start":
+            print("Start")
+            r = Recording(
+                user = self.user,
+                meeting = meeting
+            )
+            r.save()
+
+        elif data['type'] == "user_recrd_stop":
+            print("Stop")
+            try:
+                r = Recording.objects.filter(user=self.user, meeting=meeting, end_time=None)
+                for x in r:
+                    x.end_time = datetime.now()
+                    x.save()
+            except Recording.DoesNotExist:
+                r = Recording(
+                    user=self.user,
+                    meeting=meeting,
+                    end_time=datetime.now()
+                )
+                r.save()
+            
+        else:
+            print(data['type'])
     
     def send_user_info(self, event):
         message = event['message']
