@@ -5,6 +5,8 @@
     <img src="https://img.shields.io/github/issues-pr-closed/aitalshashank2/The-Meeting-Sphinx" />
     <img src="https://img.shields.io/tokei/lines/github/aitalshashank2/The-Meeting-Sphinx" />
     <img src="https://img.shields.io/github/contributors/aitalshashank2/The-Meeting-Sphinx" />
+    <img src="https://img.shields.io/docker/cloud/automated/aitalshashank2/the-meeting-sphinx.svg" />
+    <img src="https://img.shields.io/docker/cloud/build/aitalshashank2/the-meeting-sphinx.svg" />
 </p>
 
 **The Meeting Sphinx** is a platform for hosting secure meetings in which the organizer is notified when any of the viewers starts recording their screen. This platform is perfect for the speakers who are conscious about what they say. Our platform prevents any misuse of the content of the presenter.
@@ -26,3 +28,7 @@
 
 ## Contributing
 Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change. Please the templates specified while raising an issue.
+
+## Associated Repositories
+- [Frontend](https://github.com/ShreyasTheOne/meeting-sphinx-frontend)
+- [Docker Hub](https://hub.docker.com/repository/docker/aitalshashank2/the-meeting-sphinx)
