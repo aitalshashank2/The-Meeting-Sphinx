@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  db:
+    build: ../postgres
+    restart: always
+    container_name: sphinx_postgres
+    expose:
+      - "5432"
+
+    user: postgres
+    env_file:
+      - ../postgres/database.env
+
+    volumes:
+      - type: volume
+        source: database
+        target: /var/lib/postgres/data/
+        read_only: false
+
+    networks:
+      - sphinx_network
+
+  redis:
+    build: ../redis
+    restart: always
+    container_name: sphinx_redis
+    expose:
+      - "6379"
+
+    user: redis
+    
+    networks:
+      - sphinx_network
+
+  web:
+    build:
+      context: ../django
+    restart: always
+    container_name: sphinx_web
+    expose:
+      - "8000"
+      - "8001"
+    
+    user: django
+
+    command: sh -c "python manage.py collectstatic --no-input && supervisord -c /supervisord.conf"
+
+    volumes:
+      - ../django/code/:/code/
+      - ../static/:/static/
+      - ../media/:/media/
+      - server_logs:/server_logs/
+    
+    depends_on:
+      - db
+      - redis
+    
+    networks:
+      - sphinx_network
+  
+  reverse-proxy:
+    build:
+      context: ../nginx
+    restart: always
+    container_name: sphinx_reverse_proxy
+    expose:
+      - "80"
+    ports:
+      - "54321:80"
+    
+    volumes:
+      - ../static/:/static/
+      - ../media/:/media/
+      - reverse_proxy_logs:/reverse_proxy_logs/
+      
+    depends_on:
+      - web
+    
+    networks:
+      - sphinx_network
+
+
+volumes:
+  database:
+
+  server_logs:
+  reverse_proxy_logs:
+
+networks:
+  sphinx_network:

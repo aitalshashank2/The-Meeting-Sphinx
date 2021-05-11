@@ -8,6 +8,8 @@ __pycache__/
 
 media/
 static/
+server_logs/
+reverse_proxy_logs/
 
 .vscode/
 .idea/

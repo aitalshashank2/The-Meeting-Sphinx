@@ -27,9 +27,9 @@ RUN mkdir -p /media \
 
 RUN mkdir -p /server_logs/supervisord/ \ 
     && mkdir -p /server_logs/gunicorn/ \ 
-    && mkdir -p /server_logs/daphne/
-
-VOLUME /static /media /server_logs
+    && mkdir -p /server_logs/daphne/ \ 
+    && chown -R django:django /server_logs \ 
+    && chmod -R o+r /server_logs
 
 COPY ./supervisord.conf ./supervisord.conf
 
