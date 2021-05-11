@@ -13,17 +13,34 @@
 
 ## Setup guidelines
 - Clone the repository
+- Make `django/code/configuration/config.yml` using `django/code/configuration/config-stencil.yml`.
+
+### Development Server
 - Build the image using
     ```bash
-    docker-compose build
+    docker-compose -f sphinx-build/development.yml build
     ```
 - Start the network
     ```bash
-    docker-compose up -d
+    docker-compose -f sphinx-build/development.yml up -d
     ```
 - In order to stop the network, run
     ```bash
-    docker-compose down
+    docker-compose -f sphinx-build/development.yml down
+    ```
+
+### Production Server
+- Build the image using
+    ```bash
+    docker-compose -f sphinx-build/production.yml build
+    ```
+- Start the network
+    ```bash
+    docker-compose -f sphinx-build/production.yml up -d
+    ```
+- In order to stop the network, run
+    ```bash
+    docker-compose -f sphinx-build/production.yml down
     ```
 
 ## Contributing
