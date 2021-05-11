@@ -13,17 +13,19 @@
 
 ## Setup guidelines
 - Clone the repository
+
+### Development Server
 - Build the image using
     ```bash
-    docker-compose build
+    docker-compose -f docker-compose/development.yml build
     ```
 - Start the network
     ```bash
-    docker-compose up -d
+    docker-compose -f docker-compose/development.yml up -d
     ```
 - In order to stop the network, run
     ```bash
-    docker-compose down
+    docker-compose -f docker-compose/development.yml down
     ```
 
 ## Contributing
