@@ -9,7 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from TheSphinx.models import Meeting
+from TheSphinx.models import Meeting, Attendee
 from TheSphinx.serializers import MeetingGetSerializer, MeetingPostSerializer
 from TheSphinx.permissions import HasMeetingAccess
 
@@ -25,7 +25,7 @@ class MeetingViewSet(viewsets.ModelViewSet):
     # queryset = Meeting.objects.all().order_by('-start_time')
 
     def get_queryset(self):
-        return self.request.user.meetings_organizing.all() | self.request.user.meetings_attending.all()
+        return self.request.user.meetings_organizing.all() | Meeting.objects.filter(attendees__user=self.request.user)
 
     permission_classes = [IsAuthenticated, HasMeetingAccess, ]
     lookup_field = 'meeting_code'
@@ -70,12 +70,20 @@ class MeetingViewSet(viewsets.ModelViewSet):
 
         try:
             meeting = Meeting.objects.get(meeting_code=code)
+
+            attendee_exists = False
+            try:
+                attendee = Attendee.objects.get(user=self.request.user, meeting=meeting, end_time=None)
+                attendee_exists = True
+            except Attendee.DoesNotExist:
+                attendee_exists = False
+
             if user in meeting.banned.all():
                 return Response({
                     'Detail': 'User is banned from this meeting',
                     'error': 1
                 })
-            elif user in meeting.attendees.all():
+            elif attendee_exists:
                 return Response({
                     'Detail': 'User is already in this meeting',
                     'meeting_code': code,
@@ -89,8 +97,11 @@ class MeetingViewSet(viewsets.ModelViewSet):
                 })
             else:
                 # Join
-                meeting.attendees.add(user)
-                meeting.save()
+                attendee = Attendee(
+                    user=self.request.user,
+                    meeting=meeting,
+                )
+                attendee.save()
                 return Response({
                     'Detail': 'User added to meeting attendees',
                     'meeting_code': code,

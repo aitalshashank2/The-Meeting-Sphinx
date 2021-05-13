@@ -1,7 +1,9 @@
 from rest_framework.serializers import ModelSerializer
 
 from TheSphinx.models import Meeting
-from TheSphinx.serializers import UserGetSerializer
+
+from TheSphinx.serializers.user import UserGetSerializer
+from TheSphinx.serializers.attendee import AttendeeGetSerializer
 
 
 class MeetingGetSerializer(ModelSerializer):
@@ -9,7 +11,7 @@ class MeetingGetSerializer(ModelSerializer):
     Verbose serializer for Meeting model to be used in GET METHOD
     """
     organizers = UserGetSerializer(read_only=True, many=True)
-    attendees = UserGetSerializer(read_only=True, many=True)
+    attendees = AttendeeGetSerializer(read_only=True, many=True)
 
     class Meta:
         model = Meeting
@@ -45,7 +47,6 @@ class MeetingPostSerializer(ModelSerializer):
             'id',
             'title',
             'organizers',
-            'attendees',
             'start_time',
             'meeting_code',
             'meeting_link',
