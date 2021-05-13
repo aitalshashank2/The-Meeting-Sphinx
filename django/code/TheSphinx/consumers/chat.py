@@ -54,31 +54,85 @@ class ChatConsumer(WebsocketConsumer):
     
     def receive(self, text_data):
         data = json.loads(text_data)
-        content = data['content']
+        content = data.get('content', None)
+        data_type = data.get('type', None)
 
-        try:
-            meeting = Meeting.objects.get(meeting_code=self.meeting_code)
-            message = Message(
-                sender=self.user,
-                content=content,
-                meeting=meeting
-            )
-            message.save()
+        if content:
+            try:
+                meeting = Meeting.objects.get(meeting_code=self.meeting_code)
+                message = Message(
+                    sender=self.user,
+                    content=content,
+                    meeting=meeting
+                )
+                message.save()
 
-            serializer = MessageGetSerializer(message)
-            print("received_sending")
-            async_to_sync(self.channel_layer.group_send)(
-                f'chat-{self.meeting_code}',
-                {
-                    'type': "send_message",
-                    'data': {
-                        'type': 'send_message',
-                        'data': serializer.data
-                    },
-                }
-            )
-        except:
-            self.close()
+                serializer = MessageGetSerializer(message)
+                
+                async_to_sync(self.channel_layer.group_send)(
+                    f'chat-{self.meeting_code}',
+                    {
+                        'type': "send_message",
+                        'data': {
+                            'type': 'send_message',
+                            'data': serializer.data
+                        },
+                    }
+                )
+            except:
+                self.close()
+        elif data_type:
+            try:
+                meeting = Meeting.objects.get(meeting_code=self.meeting_code)
+            except:
+                pass
+
+            if data['type'] == "user_recrd_start":
+                r = Recording(
+                    user = self.user,
+                    meeting = meeting
+                )
+                r.save()
+                async_to_sync(self.channel_layer.group_send)(
+                    f'chat-{self.meeting_code}',
+                    {
+                        'type': "send_message",
+                        'data': {
+                            'type': 'user_recrd_start',
+                            'data': UserGetSerializer(self.user).data
+                        },
+                    }
+                )
+
+            elif data['type'] == "user_recrd_stop":
+                try:
+                    r = Recording.objects.filter(user=self.user, meeting=meeting, end_time=None)
+                    for x in r:
+                        x.end_time = datetime.now()
+                        x.save()
+                except Recording.DoesNotExist:
+                    r = Recording(
+                        user=self.user,
+                        meeting=meeting,
+                        end_time=datetime.now()
+                    )
+                    r.save()
+                async_to_sync(self.channel_layer.group_send)(
+                    f'chat-{self.meeting_code}',
+                    {
+                        'type': "user_recrd_stop",
+                        'data': {
+                            'type': 'send_message',
+                            'data': UserGetSerializer(self.user).data
+                        },
+                    }
+                )
+                
+            else:
+                print(data['type'])
+        else:
+            pass
+        
     
     def send_message(self, event):
         self.send(text_data=json.dumps(event['data']))
