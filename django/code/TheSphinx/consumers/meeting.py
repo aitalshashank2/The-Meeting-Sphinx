@@ -17,8 +17,6 @@ class MeetingConsumer(WebsocketConsumer):
         try:
             meeting = Meeting.objects.get(meeting_code = self.meeting_code)
 
-            attendee = Attendee.objects.get(user=self.user, meeting=meeting, end_time=None)
-
             async_to_sync(self.channel_layer.group_add)(
                 self.meeting_code,
                 self.channel_name
@@ -27,10 +25,12 @@ class MeetingConsumer(WebsocketConsumer):
             if self.user in meeting.banned.all():
                 self.close()
                 return
-            elif (attendee not in meeting.attendees.all()) and (self.user not in meeting.organizers.all()):
-                self.close()
-                return
-
+            elif (self.user not in meeting.organizers.all()):
+                attendee = Attendee.objects.get(user=self.user, meeting=meeting, end_time=None)
+                if (attendee not in meeting.attendees.all()):
+                    self.close()
+                    return
+            
             self.accept()
 
             # SEND MEETING INFORMATION TO JOINED USER
@@ -62,9 +62,11 @@ class MeetingConsumer(WebsocketConsumer):
             )
         
         except Meeting.DoesNotExist:
+            print("meeting not found")
             self.close()
         
         except Attendee.DoesNotExist:
+            print("attendee not found")
             self.close()
     
     def disconnect(self, close_code):

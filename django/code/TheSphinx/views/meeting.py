@@ -42,25 +42,26 @@ class MeetingViewSet(viewsets.ModelViewSet):
             except Meeting.DoesNotExist:
                 break
 
-        try:
-            result = urlparse(serializer.validated_data['meeting_link'])
-            valid = all([result.scheme, result.netloc, result.path])
-        except:
-            valid = False
+        # try:
+        #     result = urlparse(serializer.validated_data['meeting_link'])
+        #     valid = all([result.scheme, result.netloc, result.path])
+        # except:
+        #     valid = False
 
-        if not valid:
-            meeting_link = "pasta"
+        # if not valid:
+        #     meeting_link = "pasta"
 
-            serializer.save(
-                organizers=[self.request.user.pk, ],
-                meeting_code=meeting_code,
-                meeting_link=meeting_link
-            )
-        else:
-            serializer.save(
-                organizers=[self.request.user.pk, ],
-                meeting_code=meeting_code
-            )
+        serializer.save(
+            organizers=[self.request.user.pk, ],
+            meeting_code=meeting_code,
+            meeting_link=serializer.validated_data['meeting_link']
+        )
+
+        # else:
+        #     serializer.save(
+        #         organizers=[self.request.user.pk, ],
+        #         meeting_code=meeting_code
+        #     )
 
     @action(detail=False, methods=['post'])
     def join(self, request):

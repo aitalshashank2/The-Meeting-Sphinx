@@ -18,8 +18,6 @@ class ChatConsumer(WebsocketConsumer):
         try:
             meeting = Meeting.objects.get(meeting_code = self.meeting_code)
 
-            attendee = Attendee.objects.get(user=self.user, meeting=meeting, end_time=None)
-
             async_to_sync(self.channel_layer.group_add)(
                 f'chat-{self.meeting_code}',
                 self.channel_name
@@ -28,9 +26,11 @@ class ChatConsumer(WebsocketConsumer):
             if self.user in meeting.banned.all():
                 self.close()
                 return
-            elif (attendee not in meeting.attendees.all()) and (self.user not in meeting.organizers.all()):
-                self.close()
-                return
+            elif (self.user not in meeting.organizers.all()):
+                attendee = Attendee.objects.get(user=self.user, meeting=meeting, end_time=None)
+                if (attendee not in meeting.attendees.all()):
+                    self.close()
+                    return
 
             self.accept()
 
@@ -122,9 +122,9 @@ class ChatConsumer(WebsocketConsumer):
                     async_to_sync(self.channel_layer.group_send)(
                         f'chat-{self.meeting_code}',
                         {
-                            'type': "user_recrd_stop",
+                            'type': "send_message",
                             'data': {
-                                'type': 'send_message',
+                                'type': 'user_recrd_stop',
                                 'data': UserGetSerializer(self.user).data
                             },
                         }
