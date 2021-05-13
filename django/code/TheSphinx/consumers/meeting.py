@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
@@ -94,7 +94,9 @@ class MeetingConsumer(WebsocketConsumer):
                         'message': message_send,
                     }
                 )
-                meeting.delete()
+                meeting.meeting_code = ""
+                meeting.end_time = datetime.now()
+                meeting.save()
                 
         except:
             self.close()
