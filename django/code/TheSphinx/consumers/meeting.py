@@ -1,4 +1,3 @@
-from datetime import date, datetime
 import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
@@ -112,10 +111,6 @@ class MeetingConsumer(WebsocketConsumer):
             self.meeting_code,
             self.channel_name
         )
-
-    def receive(self, text_data=None, bytes_data=None):
-        data = json.loads(text_data)
-        
     
     def send_user_info(self, event):
         message = event['message']

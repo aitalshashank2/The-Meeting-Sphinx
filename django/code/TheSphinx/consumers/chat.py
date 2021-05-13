@@ -1,4 +1,5 @@
 import json
+from datetime import date, datetime
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 
@@ -43,7 +44,7 @@ class ChatConsumer(WebsocketConsumer):
         
         except Exception as e:
             print("disconnecting from connect method")
-            print("because", e)
+            print(f"because, my meeting code is {self.meeting_code}", e)
             self.close()
     
     def disconnect(self, close_code):
@@ -58,7 +59,7 @@ class ChatConsumer(WebsocketConsumer):
         data = json.loads(text_data)
         content = data.get('content', None)
         data_type = data.get('type', None)
-
+        print("data_type", data_type)
         if content:
             try:
                 meeting = Meeting.objects.get(meeting_code=self.meeting_code)
@@ -84,51 +85,55 @@ class ChatConsumer(WebsocketConsumer):
             except:
                 self.close()
         elif data_type:
+            print("data_type", data_type)
             try:
                 meeting = Meeting.objects.get(meeting_code=self.meeting_code)
-            except:
-                pass
 
-            if data['type'] == "user_recrd_start":
-                r = Recording(
-                    user = self.user,
-                    meeting = meeting
-                )
-                r.save()
-                async_to_sync(self.channel_layer.group_send)(
-                    f'chat-{self.meeting_code}',
-                    {
-                        'type': "send_message",
-                        'data': {
-                            'type': 'user_recrd_start',
-                            'data': UserGetSerializer(self.user).data
-                        },
-                    }
-                )
-
-            elif data['type'] == "user_recrd_stop":
-                try:
-                    r = Recording.objects.filter(user=self.user, meeting=meeting, end_time=None)
-                    for x in r:
-                        x.end_time = datetime.now()
-                        x.save()
-                except Recording.DoesNotExist:
+                if data['type'] == "user_recrd_start":
                     r = Recording(
-                        user=self.user,
-                        meeting=meeting,
-                        end_time=datetime.now()
+                        user = self.user,
+                        meeting = meeting
                     )
                     r.save()
-                async_to_sync(self.channel_layer.group_send)(
-                    f'chat-{self.meeting_code}',
-                    {
-                        'type': "user_recrd_stop",
-                        'data': {
-                            'type': 'send_message',
-                            'data': UserGetSerializer(self.user).data
-                        },
-                    }
-                )
+                    async_to_sync(self.channel_layer.group_send)(
+                        f'chat-{self.meeting_code}',
+                        {
+                            'type': "send_message",
+                            'data': {
+                                'type': 'user_recrd_start',
+                                'data': UserGetSerializer(self.user).data
+                            },
+                        }
+                    )
+
+                elif data['type'] == "user_recrd_stop":
+                    try:
+                        r = Recording.objects.filter(user=self.user, meeting=meeting, end_time=None)
+                        for x in r:
+                            x.end_time = datetime.now()
+                            x.save()
+                    except Recording.DoesNotExist:
+                        r = Recording(
+                            user=self.user,
+                            meeting=meeting,
+                            end_time=datetime.now()
+                        )
+                        r.save()
+                    async_to_sync(self.channel_layer.group_send)(
+                        f'chat-{self.meeting_code}',
+                        {
+                            'type': "user_recrd_stop",
+                            'data': {
+                                'type': 'send_message',
+                                'data': UserGetSerializer(self.user).data
+                            },
+                        }
+                    )
+                    
+            except Exception as e:
+                print("disconnecting from receive method")
+                print(f"because, my meeting code is {self.meeting_code}", e)
+            
                 
             else:
                 print(data['type'])
