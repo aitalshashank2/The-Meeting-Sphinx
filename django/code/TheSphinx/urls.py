@@ -9,6 +9,7 @@ router.register(r'auth', AuthViewSet)
 router.register(r'meeting', MeetingViewSet, basename="meeting")
 router.register(r'message', MessageViewSet, basename="message")
 router.register(r'recording', RecordingViewSet)
+router.register(r'attendee', AttendeeViewSet)
 
 urlpatterns = []
 

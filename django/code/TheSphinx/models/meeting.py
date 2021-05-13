@@ -19,12 +19,6 @@ class Meeting(models.Model):
         blank=False
     )
 
-    attendees = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
-        related_name='meetings_attending',
-        blank=True
-    )
-
     banned = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         related_name='meetings_banned',

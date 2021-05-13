@@ -1,24 +1,23 @@
 from rest_framework.serializers import ModelSerializer
 
-from TheSphinx.models import Recording
+from TheSphinx.models import Attendee
 from TheSphinx.serializers import UserGetSerializer
 
 
-class RecordingGetSerializer(ModelSerializer):
+class AttendeeGetSerializer(ModelSerializer):
     """
-    Verbose serializer for Recording model to be used in GET METHOD
-    """ 
+    Verbose serializer for Attendee model to be used in GET method
+    """
     user = UserGetSerializer()
 
     class Meta:
-        model = Recording
-        depth = 1
+        model = Attendee
         fields = [
             'id',
             'user',
             'meeting',
             'start_time',
-            'end_time',
+            'end_time'
         ]
         read_only_fields = [
             'id',
@@ -28,12 +27,13 @@ class RecordingGetSerializer(ModelSerializer):
             'end_time',
         ]
 
-class RecordingPostSerializer(ModelSerializer):
+
+class AttendeePostSerializer(ModelSerializer):
     """
-    Serializer for Recording model to be used in POST METHOD
+    Serializer for Attendee Model to be used in POST method
     """
     class Meta:
-        model = Recording
+        model = Attendee
         fields = [
             'id',
             'user',
