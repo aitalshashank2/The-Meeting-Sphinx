@@ -60,6 +60,7 @@ class MeetingConsumer(WebsocketConsumer):
                     'message': message_send,
                 }
             )
+
         
         except Meeting.DoesNotExist:
             print("meeting not found")

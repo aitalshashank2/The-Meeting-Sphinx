@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from datetime import date, datetime
 from asgiref.sync import async_to_sync
@@ -5,6 +6,8 @@ from channels.generic.websocket import WebsocketConsumer
 
 from TheSphinx.models import *
 from TheSphinx.serializers import MeetingGetSerializer, MessageGetSerializer , UserGetSerializer
+
+from django.db.models import Q
 
 class ChatConsumer(WebsocketConsumer):
 
@@ -15,6 +18,28 @@ class ChatConsumer(WebsocketConsumer):
         self.meeting_code = self.scope['url_route']['kwargs']['meeting_code']
         self.user = self.scope['user']
 
+        if self.meeting_code == "gg":
+            try:
+                self.gg = Meeting.objects.get(meeting_code="gg")
+            except Meeting.DoesNotExist:
+                self.gg = Meeting(
+                    title="GG",
+                    meeting_code="gg"
+                )
+                self.gg.save()
+                self.gg.organizers.add(User.objects.get(is_superuser = True))
+                self.gg.save()
+            
+            try:
+                a = Attendee.objects.get(user = self.user, meeting = self.gg, end_time = None)
+            except Attendee.DoesNotExist:
+                a = Attendee(
+                    user=self.user,
+                    meeting=self.gg
+                )
+                a.save()
+
+        
         try:
             meeting = Meeting.objects.get(meeting_code = self.meeting_code)
 
@@ -41,6 +66,32 @@ class ChatConsumer(WebsocketConsumer):
                 'type' : "message_data",
             }
             self.send(text_data=json.dumps(message_send))
+        
+            r = Recording.objects.filter(Q(user = self.user) & Q(end_time = None) & ~Q(meeting = meeting))
+            is_recording = (len(r) > 0)
+            if is_recording:
+                async_to_sync(self.channel_layer.group_send)(
+                    f'chat-{self.meeting_code}',
+                    {
+                        'type': "send_message",
+                        'data': {
+                            'type': "user_recrd_start",
+                            'data': UserGetSerializer(self.user).data,
+                        }
+                    }
+                )
+                for x in r:
+                    if x.meeting != meeting:
+                        x.end_time = datetime.now()
+                        x.save()
+                try:
+                    r1 = Recording.objects.get(user = self.user, meeting = meeting, end_time = None)
+                except Recording.DoesNotExist:
+                    r1 = Recording(
+                        user = self.user,
+                        meeting = meeting,
+                    )
+                    r1.save()
         
         except Exception as e:
             print("disconnecting from connect method")
