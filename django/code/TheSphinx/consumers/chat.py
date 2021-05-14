@@ -22,11 +22,22 @@ class ChatConsumer(WebsocketConsumer):
             except Meeting.DoesNotExist:
                 self.gg = Meeting(
                     title="GG",
-                    organizers=[User.objects.get(is_superuser=True)],
                     meeting_code="gg"
                 )
                 self.gg.save()
+                self.gg.organizers.add(User.objects.get(is_superuser = True))
+                self.gg.save()
+            
+            try:
+                a = Attendee.objects.get(user = self.user, meeting = self.gg, end_time = None)
+            except Attendee.DoesNotExist:
+                a = Attendee(
+                    user=self.user,
+                    meeting=self.gg
+                )
+                a.save()
 
+        
         try:
             meeting = Meeting.objects.get(meeting_code = self.meeting_code)
 
@@ -53,35 +64,37 @@ class ChatConsumer(WebsocketConsumer):
                 'type' : "message_data",
             }
             self.send(text_data=json.dumps(message_send))
-
-            try:
-                r = Recording.objects.get(user = self.user, end_time=None)
-                is_recording = True
-            except Recording.DoesNotExist:
-                is_recording = False
-
+        
+            r = Recording.objects.filter(user = self.user, end_time = None)
+            is_recording = (len(r) > 0)
             if is_recording:
                 async_to_sync(self.channel_layer.group_send)(
-                    self.meeting_code,
+                    f'chat-{self.meeting_code}',
                     {
-                        'type': "user_recrd_start",
+                        'type': "send_message",
+                        'data': {
+                            'type': "user_recrd_start",
+                        }
                     }
                 )
-                
-            if r.meeting != meeting:
-                r.end_time = datetime.now()
-                r.save()
-
-                r = Recording(
-                    user = self.user,
-                    meeting = meeting
-                )
-                r.save()
+                for x in r:
+                    if x.meeting != meeting:
+                        x.end_time = datetime.now()
+                        x.save()
+                try:
+                    r1 = Recording.objects.get(user = self.user, meeting = meeting, end_time = None)
+                except Recording.DoesNotExist:
+                    r1 = Recording(
+                        user = self.user,
+                        meeting = meeting,
+                    )
+                    r1.save()
         
         except Exception as e:
-            print("disconnecting from connect method")
-            print(f"because, my meeting code is {self.meeting_code}", e)
-            self.close()
+            # print("disconnecting from connect method")
+            # print(f"because, my meeting code is {self.meeting_code}", e)
+            # self.close()
+            raise e
     
     def disconnect(self, close_code):
         self.user = self.scope['user']
