@@ -7,6 +7,8 @@ from channels.generic.websocket import WebsocketConsumer
 from TheSphinx.models import *
 from TheSphinx.serializers import MeetingGetSerializer, MessageGetSerializer , UserGetSerializer
 
+from django.db.models import Q
+
 class ChatConsumer(WebsocketConsumer):
 
     def __init__(self, *args, **kwargs):
@@ -65,7 +67,7 @@ class ChatConsumer(WebsocketConsumer):
             }
             self.send(text_data=json.dumps(message_send))
         
-            r = Recording.objects.filter(user = self.user, end_time = None)
+            r = Recording.objects.filter(Q(user = self.user) & Q(end_time = None) & ~Q(meeting = meeting))
             is_recording = (len(r) > 0)
             if is_recording:
                 async_to_sync(self.channel_layer.group_send)(
@@ -74,6 +76,7 @@ class ChatConsumer(WebsocketConsumer):
                         'type': "send_message",
                         'data': {
                             'type': "user_recrd_start",
+                            'data': UserGetSerializer(self.user).data,
                         }
                     }
                 )
@@ -91,10 +94,9 @@ class ChatConsumer(WebsocketConsumer):
                     r1.save()
         
         except Exception as e:
-            # print("disconnecting from connect method")
-            # print(f"because, my meeting code is {self.meeting_code}", e)
-            # self.close()
-            raise e
+            print("disconnecting from connect method")
+            print(f"because, my meeting code is {self.meeting_code}", e)
+            self.close()
     
     def disconnect(self, close_code):
         self.user = self.scope['user']
