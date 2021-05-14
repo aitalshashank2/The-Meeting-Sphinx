@@ -8,7 +8,6 @@ class RecordingGetSerializer(ModelSerializer):
     """
     Verbose serializer for Recording model to be used in GET METHOD
     """ 
-    user = UserGetSerializer()
 
     class Meta:
         model = Recording

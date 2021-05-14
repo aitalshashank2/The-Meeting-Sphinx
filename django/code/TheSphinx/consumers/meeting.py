@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 
@@ -84,18 +85,16 @@ class MeetingConsumer(WebsocketConsumer):
         )
 
         try:
-            meeting = Meeting.objects.get(meeting_code=self.meeting_code)
-            attendee = Attendee.objects.get(user=self.user, meeting=meeting, end_time=None)
-            attendees = meeting.attendees.all()
 
-            if attendee in attendees :
-                attendee.end_time = datetime.now()
-                attendee.save()
-            elif self.user in meeting.organizers.all():
+            meeting = Meeting.objects.get(meeting_code=self.meeting_code)
+            if self.user in meeting.organizers.all():
+                meeting.meeting_code = ""
+                meeting.end_time = datetime.now()
+                meeting.save()
                 message_send = {
-                    'data' : '',
-                    'type' : "organiser_left",
-                } 
+                    'data': '',
+                    'type': "organiser_left",
+                }
                 async_to_sync(self.channel_layer.group_send)(
                     self.meeting_code,
                     {
@@ -103,10 +102,17 @@ class MeetingConsumer(WebsocketConsumer):
                         'message': message_send,
                     }
                 )
-                meeting.meeting_code = ""
-                meeting.end_time = datetime.now()
-                meeting.save()
-                
+                print("disconnected")
+            else:
+                try:
+                    attendee = Attendee.objects.get(user=self.user, meeting=meeting, end_time=None)
+                    attendees = meeting.attendees.all()
+
+                    if attendee in attendees :
+                        attendee.end_time = datetime.now()
+                        attendee.save()
+                except:
+                    self.close()
         except:
             self.close()
         

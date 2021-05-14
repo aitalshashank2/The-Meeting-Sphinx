@@ -6,6 +6,7 @@ from channels.generic.websocket import WebsocketConsumer
 
 from TheSphinx.models import *
 from TheSphinx.serializers import MeetingGetSerializer, MessageGetSerializer , UserGetSerializer
+from TheSphinx.serializers.recording import RecordingGetSerializer
 
 from django.db.models import Q
 
@@ -76,7 +77,7 @@ class ChatConsumer(WebsocketConsumer):
                         'type': "send_message",
                         'data': {
                             'type': "user_recrd_start",
-                            'data': UserGetSerializer(self.user).data,
+                            'data': RecordingGetSerializer(r.first()).data,
                         }
                     }
                 )
@@ -110,7 +111,7 @@ class ChatConsumer(WebsocketConsumer):
         data = json.loads(text_data)
         content = data.get('content', None)
         data_type = data.get('type', None)
-        print("data_type", data_type)
+
         if content:
             try:
                 meeting = Meeting.objects.get(meeting_code=self.meeting_code)
@@ -152,7 +153,7 @@ class ChatConsumer(WebsocketConsumer):
                             'type': "send_message",
                             'data': {
                                 'type': 'user_recrd_start',
-                                'data': UserGetSerializer(self.user).data
+                                'data': RecordingGetSerializer(r).data
                             },
                         }
                     )
@@ -160,26 +161,46 @@ class ChatConsumer(WebsocketConsumer):
                 elif data['type'] == "user_recrd_stop":
                     try:
                         r = Recording.objects.filter(user=self.user, meeting=meeting, end_time=None)
-                        for x in r:
-                            x.end_time = datetime.now()
-                            x.save()
-                    except Recording.DoesNotExist:
+                        print(r)
+                        if len(r) == 0:
+                            raise
+                        print("lngofp")
+                        # print(RecordingGetSerializer(r.first()).data)
+
+
+                        x = r.first()
+                        x.end_time = datetime.now()
+                        x.save()
+                        print(RecordingGetSerializer(x).data)
+
+                        async_to_sync(self.channel_layer.group_send)(
+                            f'chat-{self.meeting_code}',
+                            {
+                                'type': "send_message",
+                                'data': {
+                                    'type': 'user_recrd_stop',
+                                    'data': RecordingGetSerializer(x).data
+                                },
+                            }
+                        )
+
+                    except:
                         r = Recording(
                             user=self.user,
                             meeting=meeting,
                             end_time=datetime.now()
                         )
                         r.save()
-                    async_to_sync(self.channel_layer.group_send)(
-                        f'chat-{self.meeting_code}',
-                        {
-                            'type': "send_message",
-                            'data': {
-                                'type': 'user_recrd_stop',
-                                'data': UserGetSerializer(self.user).data
-                            },
-                        }
-                    )
+                        async_to_sync(self.channel_layer.group_send)(
+                            f'chat-{self.meeting_code}',
+                            {
+                                'type': "send_message",
+                                'data': {
+                                    'type': 'user_recrd_stop',
+                                    'data': RecordingGetSerializer(r).data
+                                },
+                            }
+                        )
                     
             except Exception as e:
                 print("disconnecting from receive method")

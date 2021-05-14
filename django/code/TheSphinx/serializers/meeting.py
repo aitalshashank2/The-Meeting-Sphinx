@@ -57,3 +57,13 @@ class MeetingPostSerializer(ModelSerializer):
             'start_time',
             'meeting_code',
         ]
+
+class MeetingShallowSerializer(ModelSerializer):
+
+    class Meta:
+        model = Meeting
+        fields = [
+            'id',
+            'title',
+            'meeting_code',
+        ]

@@ -2,7 +2,7 @@ import random
 import string
 
 from urllib.parse import urlparse
-
+from django.db.models import Q
 from rest_framework import viewsets, status
 
 from rest_framework.decorators import action
@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from TheSphinx.models import Meeting, Attendee
-from TheSphinx.serializers import MeetingGetSerializer, MeetingPostSerializer
+from TheSphinx.serializers import MeetingGetSerializer, MeetingPostSerializer, MeetingShallowSerializer
 from TheSphinx.permissions import HasMeetingAccess
 
 
@@ -115,4 +115,33 @@ class MeetingViewSet(viewsets.ModelViewSet):
                 'error': 2
             })
 
-        # POSITIVE ERROR CODES ARE ERROS, NEGATIVE ARE NOT
+        # POSITIVE ERROR CODES ARE ERRORS, NEGATIVE ARE NOT
+
+
+    @action(methods=['get'], detail=False, permission_classes=[IsAuthenticated,])
+    def my(self, request):
+        print(request.user)
+        meetings_running = Meeting.objects.filter(Q(end_time=None))
+        ongoing_meetings = []
+        for m in meetings_running:
+            if request.user in m.organizers.all():
+                ongoing_meetings.append(MeetingShallowSerializer(m).data)
+            else:
+                user_attendees = Attendee.objects.filter(meeting=m, user=request.user, end_time=None).count()
+                if user_attendees == 1:
+                    ongoing_meetings.append(MeetingShallowSerializer(m).data)
+
+        meetings_over = Meeting.objects.filter(~Q(end_time=None))
+        past_meetings = []
+        for m in meetings_over:
+            if request.user in m.organizers.all():
+                past_meetings.append(MeetingShallowSerializer(m).data)
+            else:
+                user_attendees = Attendee.objects.filter(Q(meeting=m) & Q(user=request.user) & ~Q(end_time=None)).count()
+                if user_attendees == 1:
+                    past_meetings.append(MeetingShallowSerializer(m).data)
+
+        return Response({
+            'past_meetings': past_meetings,
+            'ongoing_meetings': ongoing_meetings
+        })
