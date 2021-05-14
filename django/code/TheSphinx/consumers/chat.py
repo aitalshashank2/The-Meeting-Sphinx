@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from datetime import date, datetime
 from asgiref.sync import async_to_sync
@@ -14,6 +15,17 @@ class ChatConsumer(WebsocketConsumer):
     def connect(self):
         self.meeting_code = self.scope['url_route']['kwargs']['meeting_code']
         self.user = self.scope['user']
+
+        if self.meeting_code == "gg":
+            try:
+                self.gg = Meeting.objects.get(meeting_code="gg")
+            except Meeting.DoesNotExist:
+                self.gg = Meeting(
+                    title="GG",
+                    organizers=[User.objects.get(is_superuser=True)],
+                    meeting_code="gg"
+                )
+                self.gg.save()
 
         try:
             meeting = Meeting.objects.get(meeting_code = self.meeting_code)
@@ -41,6 +53,30 @@ class ChatConsumer(WebsocketConsumer):
                 'type' : "message_data",
             }
             self.send(text_data=json.dumps(message_send))
+
+            try:
+                r = Recording.objects.get(user = self.user, end_time=None)
+                is_recording = True
+            except Recording.DoesNotExist:
+                is_recording = False
+
+            if is_recording:
+                async_to_sync(self.channel_layer.group_send)(
+                    self.meeting_code,
+                    {
+                        'type': "user_recrd_start",
+                    }
+                )
+                
+            if r.meeting != meeting:
+                r.end_time = datetime.now()
+                r.save()
+
+                r = Recording(
+                    user = self.user,
+                    meeting = meeting
+                )
+                r.save()
         
         except Exception as e:
             print("disconnecting from connect method")
