@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
@@ -60,6 +61,30 @@ class MeetingConsumer(WebsocketConsumer):
                     'message': message_send,
                 }
             )
+
+            try:
+                r = Recording.objects.get(user = self.user, end_time=None)
+                is_recording = True
+            except Recording.DoesNotExist:
+                is_recording = False
+
+            if is_recording:
+                async_to_sync(self.channel_layer.group_send)(
+                    self.meeting_code,
+                    {
+                        'type': "user_recrd_start",
+                    }
+                )
+                
+            if r.meeting != meeting:
+                r.end_time = datetime.now()
+                r.save()
+
+                r = Recording(
+                    user = self.user,
+                    meeting = meeting
+                )
+                r.save()
         
         except Meeting.DoesNotExist:
             print("meeting not found")
