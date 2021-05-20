@@ -69,6 +69,17 @@ class VideoCallConsumer(WebsocketConsumer):
             self.close()
 
     def disconnect(self, close_code):
+        message_send = {
+            'data': self.user.id,
+            'type': "user_left",
+        }
+        async_to_sync(self.channel_layer.group_send)(
+            f'video-{self.meeting_code}',
+            {
+                'type': "send_user_info",
+                'message': message_send,
+            }
+        )
         async_to_sync(self.channel_layer.group_discard)(
             f'video-{self.meeting_code}',
             self.channel_name
@@ -79,11 +90,6 @@ class VideoCallConsumer(WebsocketConsumer):
         type = data.get('type')
         data = data.get('data')
 
-        # types = {
-        #     'call_user': 'hey',
-        #     'accept_call': 'call_accepted',
-        #     'user_turned_off_video':'user_turned_off_video'
-        # }
         message_send = {
             'data': data,
             'type': type
@@ -100,20 +106,3 @@ class VideoCallConsumer(WebsocketConsumer):
     def send_user_info(self, event):
         message = event['message']
         self.send(text_data=json.dumps(message))
-
-
-    # if type == 'call_user':
-    #     message_send = {
-    #         'data': data,
-    #         'type': 'hey'
-    #     }
-    # elif type == 'accept_call':
-    #     message_send = {
-    #         'data': data,
-    #         'type': 'call_accepted'
-    #     }
-    # elif type == 'user_turned_off_video':
-    #     message_send = {
-    #         'data': data,
-    #         'type': 'user_turned_off_video'
-    #     }

@@ -120,6 +120,24 @@ class MeetingConsumer(WebsocketConsumer):
             self.meeting_code,
             self.channel_name
         )
+
+    def receive (self, text_data):
+        data = json.loads(text_data)
+        type = data.get('type')
+        data = data.get('data')
+
+        message_send = {
+            'data': data,
+            'type': type
+        }
+
+        async_to_sync(self.channel_layer.group_send)(
+            self.meeting_code,
+            {
+                'type': "send_user_info",
+                'message': message_send,
+            }
+        )
     
     def send_user_info(self, event):
         message = event['message']
