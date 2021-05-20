@@ -1,5 +1,6 @@
 import random
 import string
+from datetime import datetime
 
 from urllib.parse import urlparse
 from django.db.models import Q
@@ -9,7 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from TheSphinx.models import Meeting, Attendee
+from TheSphinx.models import Meeting, Attendee, User
 from TheSphinx.serializers import MeetingGetSerializer, MeetingPostSerializer, MeetingShallowSerializer
 from TheSphinx.permissions import HasMeetingAccess
 
@@ -66,7 +67,6 @@ class MeetingViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def join(self, request):
         code = request.data['meeting_code']
-
         user = request.user
 
         try:
@@ -145,3 +145,30 @@ class MeetingViewSet(viewsets.ModelViewSet):
             'past_meetings': past_meetings,
             'ongoing_meetings': ongoing_meetings
         })
+
+    @action(methods=['post'], detail=False, permission_classes=[IsAuthenticated, ])
+    def ban(self, request):
+        meeting_id = request.data.get('meeting_id')
+        user_id = request.data.get('user_id')
+
+        try:
+            meeting = Meeting.objects.get(id=meeting_id)
+        except Meeting.DoesNotExist:
+            return Response('Invalid meeting code', status=status.HTTP_400_BAD_REQUEST)
+
+        if self.request.user not in meeting.organizers.all():
+            return Response('You are not authorized to perform this action', status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response('User with given id does not exist', status=status.HTTP_400_BAD_REQUEST)
+
+        attendees = Attendee.objects.filter(meeting=meeting, user_id=user_id, end_time=None)
+        for a in attendees:
+            a.end_time = datetime.now()
+
+        meeting.banned.add(user)
+        meeting.save()
+
+        return Response('User banned from meeting successfully', status=status.HTTP_200_OK)
