@@ -1,0 +1,111 @@
+version: '3.8'
+
+services:
+  db:
+    build: ../postgres
+    restart: always
+    image: themeetingsphinx.azurecr.io/sphinx_db
+    container_name: sphinx-postgres
+    expose:
+      - "5432"
+
+    user: postgres
+    env_file:
+      - ../postgres/database.env
+
+    volumes:
+      - type: volume
+        source: database
+        target: /var/lib/postgres/data/
+        read_only: false
+
+    networks:
+      - sphinx_network
+
+  redis:
+    build: ../redis
+    restart: always
+    image: themeetingsphinx.azurecr.io/sphinx_redis
+    container_name: sphinx-redis
+    expose:
+      - "6379"
+
+    user: redis
+    
+    networks:
+      - sphinx_network
+
+  web:
+    build:
+      context: ../django
+    restart: always
+    image: themeetingsphinx.azurecr.io/sphinx_web
+    container_name: sphinx-web
+    expose:
+      - "8000"
+      - "8001"
+    
+    user: django
+
+    command: sh -c "python manage.py collectstatic --no-input && supervisord -c /supervisord.conf"
+
+    volumes:
+      - static:/static/
+      - server-logs:/server_logs/
+    
+    depends_on:
+      - db
+      - redis
+    
+    networks:
+      - sphinx_network
+  
+  reverse-proxy:
+    build:
+      context: ../nginx
+    restart: always
+    image: themeetingsphinx.azurecr.io/sphinx_reverse_proxy
+    container_name: sphinx-reverse-proxy
+    expose:
+      - "80"
+    ports:
+      - "80:80"
+    
+    volumes:
+      - static:/static/
+      - reverse-proxy-logs:/reverse_proxy_logs/
+      
+    depends_on:
+      - web
+    
+    networks:
+      - sphinx_network
+
+
+volumes:
+  database:
+    driver: azure_file
+    driver_opts:
+      share_name: database
+      storage_account_name: themeetingsphinx
+
+  server-logs:
+    driver: azure_file
+    driver_opts:
+      share_name: serverlogs
+      storage_account_name: themeetingsphinx
+
+  reverse-proxy-logs:
+    driver: azure_file
+    driver_opts:
+      share_name: reverseproxylogs
+      storage_account_name: themeetingsphinx
+
+  static:
+    driver: azure_file
+    driver_opts:
+      share_name: static
+      storage_account_name: themeetingsphinx
+
+networks:
+  sphinx_network:
