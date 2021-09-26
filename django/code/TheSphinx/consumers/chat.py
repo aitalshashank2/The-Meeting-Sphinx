@@ -164,9 +164,6 @@ class ChatConsumer(WebsocketConsumer):
                         print(r)
                         if len(r) == 0:
                             raise
-                        print("lngofp")
-                        # print(RecordingGetSerializer(r.first()).data)
-
 
                         x = r.first()
                         x.end_time = datetime.now()

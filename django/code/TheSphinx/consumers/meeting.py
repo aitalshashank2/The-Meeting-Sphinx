@@ -120,6 +120,47 @@ class MeetingConsumer(WebsocketConsumer):
             self.meeting_code,
             self.channel_name
         )
+
+    def receive (self, text_data):
+        data = json.loads(text_data)
+        type = data.get('type')
+        data = data.get('data')
+
+        if type == 'user_banned':
+            meeting_id = data.get('meeting_id')
+            user_id = data.get('user_id')
+            try:
+                meeting = Meeting.objects.get(id=meeting_id)
+            except Meeting.DoesNotExist:
+                return
+
+            if self.user not in meeting.organizers.all():
+                return
+
+            try:
+                user = User.objects.get(id=user_id)
+            except User.DoesNotExist:
+                return
+
+            attendees = Attendee.objects.filter(meeting=meeting, user_id=user_id, end_time=None)
+            for a in attendees:
+                a.end_time = datetime.now()
+
+            meeting.banned.add(user)
+            meeting.save()
+
+        message_send = {
+            'data': data,
+            'type': type
+        }
+
+        async_to_sync(self.channel_layer.group_send)(
+            self.meeting_code,
+            {
+                'type': "send_user_info",
+                'message': message_send,
+            }
+        )
     
     def send_user_info(self, event):
         message = event['message']
